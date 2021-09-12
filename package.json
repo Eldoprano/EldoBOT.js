@@ -1,20 +1,43 @@
 {
-  "name": "discord-js-handler-template",
-  "version": "1.0.0",
-  "description": "Discord.js Command and Event Handler Template with example Command usages!",
+  "name": "guidebot",
+  "version": "1.2.1",
+  "description": "A boilerplate example bot with command handler and reloadable commands. Updated and Maintained by the Idiot's Guide Community",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js"
+    "start": "node index.js",
+    "postinstall": "node util/setup.js"
   },
-  "author": "Tomato#6966 (author of this template)",
-  "license": "ISC",
+  "engines": {
+    "node": ">=16"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anidiotsguide/guidebot-class.git"
+  },
+  "author": "Evelyne Lachance <eslachance@gmail.com> (http://evie.codes)",
+  "contributors": [
+    "York (http://anidiots.guide)"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/anidiotsguide/guidebot-class/issues"
+  },
+  "homepage": "https://github.com/anidiotsguide/guidebot-class#readme",
   "dependencies": {
-    "ascii-table": "0.0.9",
-    "discord.js": "^12.5.1"
+    "@discordjs/builders": "^0.2.0",
+    "chalk": "^4.1.1",
+    "discord.js": "^13.1.0",
+    "enmap": "^5.8.6",
+    "inquirer": "^8.0.0",
+    "moment": "^2.29.1",
+    "moment-duration-format": "^2.3.2"
   },
   "devDependencies": {
-    "ascii-table": "0.0.9",
-    "colors": "^1.4.0"
+    "eslint": "^7.30.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-config-standard": "^16.0.3",
+    "eslint-plugin-import": "^2.23.4",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^5.1.0"
   }
 }
