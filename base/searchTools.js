@@ -1,5 +1,6 @@
 const { MessageEmbed } = require('discord.js');
 const https = require('https');
+const http = require('http');
 
 // Receives a sauceNAO result element and output's an embedded page for it
 module.exports = {
@@ -240,6 +241,7 @@ module.exports = {
         function getUrlStatusCode(url) {
 
             try {
+                // We first try with the HTTPS library
                 https.get(url, (resp) => {
                     return resp.statusCode;
                 }).on('error', (err) => {
@@ -247,9 +249,23 @@ module.exports = {
                     return 404;
                 });
             } catch (e) {
-                console.log(e);
-                return 404;
+                // And then with the HTTP library, in case the link is a HTTP
+                try {
+                    http.get(url, (resp) => {
+                        return resp.statusCode;
+                    }).on('error', (err) => {
+                        console.log('HTTP Error: ' + err.message);
+                        return 404;
+                    });
+                } catch (error) {
+                    console.log(error);
+                    return 404;
+                }
             }
         }
+    },
+    extractURLs: function(text) {
+        const urlRegex = /(((https?:\/\/)|(www\.))[^\s]+)/g;
+        return text.match(urlRegex);
     },
 };
