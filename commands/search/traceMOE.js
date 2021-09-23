@@ -31,28 +31,29 @@ module.exports = class traceMOE extends Command {
 
   async run(message, [action, key, ...value], level) {
     try {
-      // Extract an URL link to search for
+      // Extract the image to search for in form of a URL
       let urlToSearch;
       if (message.attachments.first()) {
+        // Extract this URL from the attachment
         urlToSearch = message.attachments.first().url;
       } else {
-        // Search for a link on the message if it doesn't have an attachment
+        // Search for a link on the message if there wasn't an attachment
         urlToSearch = searchTools.extractURLs(message.content);
         if (urlToSearch) {
           urlToSearch = urlToSearch[0];
         } else {
-          // If it doesn't contain an URL, ignore message
+          // If it doesn't contain an URL or attachment, ignore message
           return;
         }
       }
 
       // Send it to TraceMOE API and save result
       const tMoeResponse = await fetch(traceMOEBaseURL + `${encodeURIComponent(urlToSearch)}`);
-      // if (tMoeResponse==404) // Handle this
+      // if (tMoeResponse==404) // Handle this in a future
       const tMoeData = await tMoeResponse.json();
 
       const linkList = [];
-      // Save usefull information
+      // Save result information on the AWS Database
       tMoeData.result.forEach(tMoeElement => {
         const id = saveToAWS(tMoeElement);
         linkList.push(embedBaseURL + id);
@@ -122,10 +123,10 @@ module.exports = class traceMOE extends Command {
           id = name = "ERROR! Esto no debería pasar..";
         }
 
-        if (tMoeElement.anilist.idMal) {
+        if (tMoeElement.anilist.id) {
           idAnilist = tMoeElement.anilist.id;
         } else {
-          idAnilist = 1639;
+          idAnilist = 1639; // We do a little trolling
         }
 
         if (tMoeElement.anilist.isAdult !== null) {
@@ -133,7 +134,7 @@ module.exports = class traceMOE extends Command {
         }
 
       } else if ("anilist" in tMoeElement) {
-        // In case we didn't received Anilist information, we extract it from the File tittle
+        // In case we didn't received Anilist information, we extract it from the file tittle
         const tittleParsed = anitomy.parse(tMoeElement.filename);
         if (tittleParsed.anime_title) {
           id = name = tittleParsed.anime_title;
