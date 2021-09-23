@@ -20,7 +20,7 @@ module.exports = class {
     // Checks if the bot was mentioned, with no message after it, returns the prefix.
     const prefixMention = new RegExp(`^<@!?${this.client.user.id}> ?$`);
     if (message.content.match(prefixMention)) {
-      return message.reply(`My prefix on this guild is \`${settings.prefix}\``);
+      return message.reply(`En este servidor me puedes llamar usando \`${settings.prefix}\``);
     }
 
     // Also good practice to ignore any message that does not start with our prefix,
@@ -50,16 +50,16 @@ module.exports = class {
     // Some commands may not be useable in DMs. This check prevents those commands from running
     // and return a friendly error message.
     if (cmd && !message.guild && cmd.conf.guildOnly)
-      return message.channel.send("This command is unavailable via private message. Please run this command in a guild.");
+      return message.channel.send("Sorry :/ No puedo usar este comando por DMs. Intenta ejecutándolo en un server.");
 
     // Do a quick little check to see if the command is actually enabled, if it isn't stop.
     if (!cmd.conf.enabled) return;
 
     if (level < this.client.levelCache[cmd.conf.permLevel]) {
       if (settings.systemNotice === "true") {
-        return message.channel.send(`You do not have permission to use this command.
-Your permission level is ${level} (${this.client.config.permLevels.find(l => l.level === level).name})
-This command requires level ${this.client.levelCache[cmd.conf.permLevel]} (${cmd.conf.permLevel})`);
+        return message.channel.send(`No tienes los permisos suficientes para ejecutar este comando.
+Tu nivel de permiso es ${level} (${this.client.config.permLevels.find(l => l.level === level).name})
+Este comando requiere un nivel de ${this.client.levelCache[cmd.conf.permLevel]} (${cmd.conf.permLevel})`);
       } else {
         return;
       }
@@ -70,7 +70,7 @@ This command requires level ${this.client.levelCache[cmd.conf.permLevel]} (${cmd
     message.author.permLevel = level;
 
     message.flags = [];
-    while (args[0] &&args[0][0] === "-") {
+    while (args[0] && args[0][0] === "-") {
       message.flags.push(args.shift().slice(1));
     }
     
@@ -79,7 +79,7 @@ This command requires level ${this.client.levelCache[cmd.conf.permLevel]} (${cmd
       await cmd.run(message, args, level);
       this.client.logger.log(`${this.client.config.permLevels.find(l => l.level === level).name} ${message.author.id} ran command ${cmd.help.name}`, "cmd");
     } catch (e) {
-      message.channel.send({ content: `There was a problem with your request.\n\`\`\`${e.message}\`\`\`` })
+      message.channel.send({ content: `Tuvimos un problema con tu mensaje.\n\`\`\`${e.message}\`\`\`` })
         .catch(e => console.error("An error occurred replying on an error", e));
     }
   }

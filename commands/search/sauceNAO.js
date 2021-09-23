@@ -9,11 +9,11 @@ const sauceNAO_token = config.sauceNAO_token;
 const sauceNAO_client = sagiri(sauceNAO_token);
 
 module.exports = class sauceNAO extends Command {
-
   constructor(client) {
     super(client, {
       name: 'aiurbaka',
       description: 'Searches the origin of an image',
+      category: 'search',
       options: [],
       guildOnly: false, // Set this to false if you want it to be global.
     });
@@ -34,6 +34,7 @@ module.exports = class sauceNAO extends Command {
           return;
         }
       }
+      await message.channel.sendTyping();
       const results = await sauceNAO_client(urlToSearch);
       let currentResultPage = 0;
       // console.log("All results", results);
