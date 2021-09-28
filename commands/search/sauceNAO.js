@@ -100,9 +100,9 @@ module.exports = class sauceNAO extends Command {
         fetchReply: true,
       });
 
-      const collector = await currentPage.createMessageComponentCollector({ componentType: 'BUTTON', time: 300000 });
+        const collector = await currentPage.createMessageComponentCollector({ componentType: 'BUTTON', time: 300000 });
 
-      collector.on('collect', async (i) => {
+        collector.on('collect', async (i) => {
         switch (i.customId) {
           case 'previous':
             if (currentResultPage <= 0) {
@@ -128,7 +128,7 @@ module.exports = class sauceNAO extends Command {
             break;
         }
         i.deferUpdate();
-          currentPage = await currentPage.edit({ embeds: [searchTools.makeEmbed(results[currentResultPage], currentResultPage, message.member.displayName)], components: currentButtons });
+        currentPage = await currentPage.edit({ embeds: [searchTools.makeEmbed(results[currentResultPage], currentResultPage, message.member.displayName)], components: currentButtons });
       });
 
     } catch (e) {

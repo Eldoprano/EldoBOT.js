@@ -46,6 +46,7 @@ module.exports = class traceMOE extends Command {
           return;
         }
       }
+      await message.channel.sendTyping();
 
       // Send it to TraceMOE API and save result
       const tMoeResponse = await fetch(traceMOEBaseURL + `${encodeURIComponent(urlToSearch)}`);
@@ -216,7 +217,7 @@ module.exports = class traceMOE extends Command {
         if (err) {
           console.log("Unable to add item. Error JSON:", JSON.stringify(err, null, 2));
         } else {
-          console.log("Added item:", JSON.stringify(data, null, 2));
+          // console.log("Added item:", JSON.stringify(data, null, 2));
         }
       });
 
