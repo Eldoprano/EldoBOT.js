@@ -8,6 +8,13 @@ const config = {
   // Your Bot's Token. Available on https://discord.com/developers/applications/me
   "token": "Replace me",
 
+  // SauceNAO token
+  "sauceNAO_token": "",
+  
+  // AWS tokens
+  "accessKeyId": "",
+  "accessSecretKey": "",
+
   // Intents the bot needs.
   // By default GuideBot needs Guilds, Guild Messages and Direct Messages to work.
   // For join messages to work you need Guild Members, which is privileged and requires extra setup.
