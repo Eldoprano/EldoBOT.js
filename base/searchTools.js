@@ -4,6 +4,15 @@ const http = require('http');
 
 // Receives a sauceNAO result element and output's an embedded page for it
 module.exports = {
+    getUsername: function(message, interaction = false) {
+        if (message.channel.type == 'DM') {
+            if (interaction) {
+                return message.user.username;
+            }
+            return message.author.username;
+        } 
+        return message.member.displayName;
+    },
     makeEmbed: function(sauceNAO_element, pageNumber, emb_user) {
         const result_data = sauceNAO_element.raw.data;
         const emb_similarity = sauceNAO_element.similarity;

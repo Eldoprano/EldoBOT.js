@@ -95,7 +95,7 @@ module.exports = class sauceNAO extends Command {
 
       let currentButtons = [pageButtons];
       let currentPage = await message.reply({
-        embeds: [searchTools.makeEmbed(results[currentResultPage], currentResultPage, message.member.displayName)],
+        embeds: [searchTools.makeEmbed(results[currentResultPage], currentResultPage, searchTools.getUsername(message))],
         components: currentButtons,
         fetchReply: true,
       });
@@ -128,7 +128,7 @@ module.exports = class sauceNAO extends Command {
             break;
         }
         i.deferUpdate();
-        currentPage = await currentPage.edit({ embeds: [searchTools.makeEmbed(results[currentResultPage], currentResultPage, message.member.displayName)], components: currentButtons });
+        currentPage = await currentPage.edit({ embeds: [searchTools.makeEmbed(results[currentResultPage], currentResultPage, searchTools.getUsername(message))], components: currentButtons });
       });
 
     } catch (e) {

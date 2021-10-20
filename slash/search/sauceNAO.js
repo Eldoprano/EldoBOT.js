@@ -70,7 +70,7 @@ module.exports = class sauceNAO extends slashCommand {
             break;
         }
         i.deferUpdate();
-        currentPage = await interaction.editReply({ embeds: [searchTools.makeEmbed(results[currentResultPage], currentResultPage, interaction.member.displayName)], components: [pageButtons] });
+        currentPage = await interaction.editReply({ embeds: [searchTools.makeEmbed(results[currentResultPage], currentResultPage, searchTools.getUsername(interaction, true))], components: [pageButtons] });
       });
 
     } catch (e) {
