@@ -13,18 +13,18 @@ const defaultSettings = {
   "commandReply": "true",
   "welcomeChannel": "welcome",
   "welcomeMessage": "Say hello to {{user}}, everyone! We all need a warm welcome sometimes :D",
-  "welcomeEnabled": "false"
+  "welcomeEnabled": "false",
 };
 
 const settings = new Enmap({ name: "settings", cloneLevel: "deep", ensureProps: true });
-
+const users = new Enmap({ name: "users", cloneLevel: "deep", ensureProps: true });
 
 let prompts = [
   {
     type: "list",
     name: "resetDefaults",
     message: "Do you want to reset default settings?",
-    choices: ["Yes", "No"]
+    choices: ["Yes", "No"],
   },
   {
     type: "input",

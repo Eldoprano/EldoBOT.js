@@ -168,6 +168,19 @@ module.exports = class Time extends Command {
           break;
       }
       i.deferUpdate();
+      collector.resetTimer();
+    });
+
+    collector.on('end', async () => {
+      timeMessage.edit({ embeds: [embedWithResults], components: deactivateButtons(currentButtons) });
+      function deactivateButtons(buttons) {
+        buttons.forEach(buttonRow => {
+          buttonRow.components.forEach(button => {
+            button.setDisabled();
+          });
+        });
+        return buttons;
+      }
     });
 
     // Receives a Unix timestamp and returns an Embedd with all Discord time formats
@@ -193,6 +206,8 @@ module.exports = class Time extends Command {
                         Usa los botónes para determinar la fecha del evento:\n\n
                         <t:` + (selectedTime) + `>`;
     }
+
+
   }
 
 

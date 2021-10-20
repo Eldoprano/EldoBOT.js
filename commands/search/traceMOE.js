@@ -104,6 +104,18 @@ module.exports = class traceMOE extends Command {
         traceMoeMSG = await traceMoeMSG.edit(linkList[currentResultPage]);
       });
 
+      collector.on('end', async () => {
+        traceMoeMSG.edit({ content: linkList[currentResultPage], components: deactivateButtons([pageButtons]) });
+        function deactivateButtons(buttons) {
+          buttons.forEach(buttonRow => {
+            buttonRow.components.forEach(button => {
+              button.setDisabled();
+            });
+          });
+          return buttons;
+        }
+      });
+
     } catch (e) {
       console.log(e);
       return message.reply(`There was a problem with your request.\n\`\`\`${e.message}\`\`\``);
@@ -213,7 +225,7 @@ module.exports = class traceMOE extends Command {
         },
       };
 
-      docClient.put(params, function (err, data) {
+      docClient.put(params, function(err, data) {
         if (err) {
           console.log("Unable to add item. Error JSON:", JSON.stringify(err, null, 2));
         } else {
