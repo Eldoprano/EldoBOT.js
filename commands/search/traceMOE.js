@@ -87,7 +87,7 @@ module.exports = class traceMOE extends Command {
         switch (i.customId) {
           case 'previous':
             if (currentResultPage <= 0) {
-              currentResultPage = linkList.length;
+              currentResultPage = linkList.length-1;
             } else {
               currentResultPage -= 1;
             }

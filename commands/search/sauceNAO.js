@@ -106,7 +106,7 @@ module.exports = class sauceNAO extends Command {
         switch (i.customId) {
           case 'previous':
             if (currentResultPage <= 0) {
-              currentResultPage = results.length;
+              currentResultPage = results.length - 1;
             } else {
               currentResultPage -= 1;
             }
