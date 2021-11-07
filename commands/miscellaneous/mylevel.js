@@ -1,4 +1,6 @@
 const Command = require("../../base/Command.js");
+const globals = require("../../base/Globals");
+
 
 module.exports = class MyLevel extends Command {
   constructor(client) {

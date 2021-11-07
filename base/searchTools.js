@@ -1,8 +1,84 @@
-const { MessageEmbed } = require('discord.js');
+const { MessageEmbed, MessageAttachment } = require('discord.js');
 const https = require('https');
 const http = require('http');
+const fetch = require('node-fetch');
+const ogs = require('open-graph-scraper');
+const globals = require('./Globals');
 
-// Receives a sauceNAO result element and output's an embedded page for it
+async function down_to_up(url) {
+    const response = await fetch(url);
+    return await response.buffer();
+}
+
+async function saveToDiscord(file_list) {
+    const getFileName = new RegExp(/([\w_-]+)+(?!.*(\w+)(\.\w+)+)/);
+    const link_list = [];
+    while (file_list.length > 0) {
+        const files_to_send = file_list.slice(0, 10);
+        let result_msg = "";
+        file_list = file_list.slice(10);
+
+        result_msg = await globals.logChannel.send({ files: files_to_send });  
+        
+        const attach = Array.from(result_msg.attachments.values());
+        let attach_counter = 0;
+        for (let i = 0; i < files_to_send.length; i++) {
+
+            if (attach_counter < attach.length && attach[attach_counter].name.includes(getFileName.exec(files_to_send[i])[0])) {
+                link_list.push(attach[attach_counter].url);
+                attach_counter++;
+                
+            } else { // If Discord didn't uplaoded our file, we download it, and send it again, as buffer
+                let tmp_result = await down_to_up(files_to_send[i]);
+                tmp_result = new MessageAttachment().setFile(tmp_result, 'Discord_baka.jpg');
+                tmp_result = await globals.logChannel.send({content: "Discord is a little whiny baby that can't detect an image file, so we need to explicitly give him this piece of Buffer", files: [tmp_result] });  
+
+                tmp_result.attachments.forEach(attachment => {
+                    // do something with the attachment
+                    link_list.push(attachment.url);
+                });
+            }
+
+        }
+
+    }
+
+    return link_list;
+}
+
+async function sauceToDiscord(sauceNAO_result) {
+    const output = [];
+    const links_to_grab = [];
+    for (let i = 0; i < sauceNAO_result.length; i++) {
+        const sauceNAO_element = sauceNAO_result[i];
+        
+        if (sauceNAO_element.site === 'Gelbooru' || sauceNAO_element.site === 'Danbooru') {
+            const ogs_response = await ogs({ url: sauceNAO_element.url });
+            if (!ogs_response.error) {
+                if ('ogImage' in ogs_response.result) {
+                    links_to_grab.push(ogs_response.result.ogImage.url);
+                    output.push(sauceNAO_element);
+                }
+            } else if ("thumbnail" in sauceNAO_element) {
+                links_to_grab.push(sauceNAO_element.thumbnail);
+                output.push(sauceNAO_element);
+
+            }    
+
+        } else if ("thumbnail" in sauceNAO_element) {
+            links_to_grab.push(sauceNAO_element.thumbnail);
+            output.push(sauceNAO_element);
+        }
+
+    }
+    const ogs_response = await saveToDiscord(links_to_grab);
+    for (let i = 0; i < ogs_response.length; i++) {
+        output[i].thumbnail = ogs_response[i];
+    }
+
+    return output;
+}
+
 module.exports = {
     getUsername: function(message, interaction = false) {
         if (message.channel.type == 'DM') {
@@ -13,6 +89,7 @@ module.exports = {
         } 
         return message.member.displayName;
     },
+
     makeEmbed: function(sauceNAO_element, pageNumber, emb_user) {
         const result_data = sauceNAO_element.raw.data;
         const emb_similarity = sauceNAO_element.similarity;
@@ -20,13 +97,16 @@ module.exports = {
             emb_episode, statusCode, emb_character, emb_company, emb_game,
             emb_description, emb_color, emb_embbed_tittle, emb_footer;
 
-        if ('thumbnail' in sauceNAO_element.raw.header) {
-            emb_preview = sauceNAO_element.raw.header.thumbnail;
+        if ('in_discord' in result_data) {
+            emb_preview = sauceNAO_element.raw.discord_image;
+        } else if ('thumbnail' in sauceNAO_element) {
+            emb_preview = sauceNAO_element.thumbnail;
         }
 
         if (emb_similarity > 50) {
             emb_index_saucenao = sauceNAO_element.raw.header.index_name.split('-')[0];
 
+            
             // Test if URL is still working
             statusCode = getUrlStatusCode(result_data.ext_urls[0]);
             if (statusCode != 404) {
@@ -245,36 +325,38 @@ module.exports = {
             }
             return embedWithResults;
         }
-
-
-        function getUrlStatusCode(url) {
-
-            try {
-                // We first try with the HTTPS library
-                https.get(url, (resp) => {
-                    return resp.statusCode;
-                }).on('error', (err) => {
-                    console.log('HTTP Error: ' + err.message);
-                    return 404;
-                });
-            } catch (e) {
-                // And then with the HTTP library, in case the link is a HTTP
-                try {
-                    http.get(url, (resp) => {
-                        return resp.statusCode;
-                    }).on('error', (err) => {
-                        console.log('HTTP Error: ' + err.message);
-                        return 404;
-                    });
-                } catch (error) {
-                    console.log(error);
-                    return 404;
-                }
-            }
-        }
     },
     extractURLs: function(text) {
         const urlRegex = /(((https?:\/\/)|(www\.))[^\s]+)/g;
         return text.match(urlRegex);
     },
 };
+
+function getUrlStatusCode(url) {
+
+    try {
+        // We first try with the HTTPS library
+        https.get(url, (resp) => {
+            return resp.statusCode;
+        }).on('error', (err) => {
+            console.log('HTTP Error: ' + err.message);
+            return 404;
+        });
+    } catch (e) {
+        // And then with the HTTP library, in case the link is a HTTP
+        try {
+            http.get(url, (resp) => {
+                return resp.statusCode;
+            }).on('error', (err) => {
+                console.log('HTTP Error: ' + err.message);
+                return 404;
+            });
+        } catch (error) {
+            console.log(error);
+            return 404;
+        }
+    }
+}
+
+module.exports.saveToDiscord = saveToDiscord;
+module.exports.sauceToDiscord = sauceToDiscord;

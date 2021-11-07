@@ -1,4 +1,6 @@
 const { Team } = require("discord.js");
+const globals = require("../base/Globals");
+
 
 module.exports = class {
   constructor(client) {
@@ -35,5 +37,10 @@ module.exports = class {
   
     // Log that we're ready to serve, so we know the bot accepts commands.
     this.client.logger.log(`${this.client.user.tag}, ready to serve ${this.client.users.cache.size} users in ${this.client.guilds.cache.size} servers.`, "ready");
+      
+    // Here we save the log channel in a variable
+    globals.logChannel = this.client.channels.fetch(globals.logChannelID)
+      .then(channel => globals.logChannel = channel)
+      .catch(console.error);
   }
 };

@@ -15,7 +15,7 @@ const traceMOEBaseURL = "https://api.trace.moe/search?anilistInfo&size=l&url=";
 AWS.config.update({
   accessKeyId: config.accessKeyId,
   accessSecretKey: config.accessSecretKey,
-  region: "us-east-1",
+  region: config.awsRegion,
 });
 
 module.exports = class traceMOE extends Command {
@@ -54,13 +54,11 @@ module.exports = class traceMOE extends Command {
       const tMoeData = await tMoeResponse.json();
 
       const linkList = [];
-      // Save result information on the AWS Database
-      tMoeData.result.forEach(tMoeElement => {
-        const id = saveToAWS(tMoeElement);
-        linkList.push(embedBaseURL + id);
-      });
 
-      
+      // Save result information on the AWS Database
+      const id = saveToAWS(tMoeData.result[0]);
+      linkList.push(embedBaseURL + id);
+
       const pageButtons = new MessageActionRow()
                               .addComponents(
                                 new MessageButton()
@@ -76,6 +74,11 @@ module.exports = class traceMOE extends Command {
       let traceMoeMSG = await message.channel.send({
         content: linkList[0],
         components: [pageButtons],
+      });
+
+      tMoeData.result.slice(1).forEach(tMoeElement => {
+        const id = saveToAWS(tMoeElement);
+        linkList.push(embedBaseURL + id);
       });
 
       const collector = await traceMoeMSG.createMessageComponentCollector({ componentType: 'BUTTON', time: 300000 });
