@@ -3,6 +3,8 @@ const https = require('https');
 const http = require('http');
 const fetch = require('node-fetch');
 const ogs = require('open-graph-scraper');
+const sharp = require('sharp');
+const axios = require('axios');
 const globals = require('./Globals');
 
 async function down_to_up(url) {
@@ -28,8 +30,14 @@ async function saveToDiscord(file_list) {
                 link_list.push(attach[attach_counter].url);
                 attach_counter++;
                 
-            } else { // If Discord didn't uplaoded our file, we download it, and send it again, as buffer
+            } else { // If Discord didn't uploaded our file, we download it, and send it again, as buffer
                 let tmp_result = await down_to_up(files_to_send[i]);
+
+                if (tmp_result.byteLength / 1000000 > 8) {
+                    // TODO: If file size is greater than 8mb, we should compress it
+                    console.log("FILE TOO BIG!");
+                }
+
                 tmp_result = new MessageAttachment().setFile(tmp_result, 'Discord_baka.jpg');
                 tmp_result = await globals.logChannel.send({content: "Discord is a little whiny baby that can't detect an image file, so we need to explicitly give him this piece of Buffer", files: [tmp_result] });  
 
@@ -46,13 +54,49 @@ async function saveToDiscord(file_list) {
     return link_list;
 }
 
+async function getBlurredNSFWLink(image) {
+    let imageResponse = await axios({ url: "https://cdn.discordapp.com/attachments/708648213774598164/909453999034499092/nsfw.png", responseType: 'arraybuffer' });
+    const nsfwWatermark_buf = Buffer.from(imageResponse.data, 'binary');
+    let output;
+
+    imageResponse = await axios({url: image, responseType: 'arraybuffer'});
+    const buffer = Buffer.from(imageResponse.data, 'binary');
+    let imageData;
+    try {
+        imageData = sharp(buffer);
+        const imageMetadata = await imageData.metadata();
+
+        const nsfwWatermark = await sharp(nsfwWatermark_buf)
+            .resize({ width: imageMetadata.width * 0.65, height: imageMetadata.height * 0.65, fit: sharp.fit.contain, background: { r: 0, g: 0, b: 0, alpha: 0 } })
+            .toBuffer();
+        
+        imageData = await imageData
+            .blur(8)
+            .composite([{ input: nsfwWatermark, gravity: 'center' }])
+            .toBuffer();
+
+        const fileToSend = new MessageAttachment().setFile(imageData, 'BlurredForTheGreaterGood.jpg');
+        const discordMsg = await globals.logChannel.send({ content: "A blurred NSFW Pic OwO", files: [fileToSend] });  
+
+        discordMsg.attachments.forEach(attachment => {
+            output = attachment.url;
+        });
+
+
+    } catch(e) {
+        console.log(e);
+    }
+    return output;
+}
+
 async function sauceToDiscord(sauceNAO_result) {
     const output = [];
     const links_to_grab = [];
+    const sitesWithWebPreview = ['Gelbooru', 'Danbooru'];
     for (let i = 0; i < sauceNAO_result.length; i++) {
         const sauceNAO_element = sauceNAO_result[i];
         
-        if (sauceNAO_element.site === 'Gelbooru' || sauceNAO_element.site === 'Danbooru') {
+        if (sitesWithWebPreview.includes(sauceNAO_element.site)) {
             const ogs_response = await ogs({ url: sauceNAO_element.url });
             if (!ogs_response.error) {
                 if ('ogImage' in ogs_response.result) {
@@ -360,3 +404,4 @@ function getUrlStatusCode(url) {
 
 module.exports.saveToDiscord = saveToDiscord;
 module.exports.sauceToDiscord = sauceToDiscord;
+module.exports.getBlurredNSFWLink = getBlurredNSFWLink;

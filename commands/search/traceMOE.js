@@ -29,7 +29,7 @@ module.exports = class traceMOE extends Command {
     });
   }
 
-  async run(message, [action, key, ...value], level) {
+  async run(message, [, ]) {
     try {
       // Extract the image to search for in form of a URL
       let urlToSearch;
@@ -56,19 +56,26 @@ module.exports = class traceMOE extends Command {
       const linkList = [];
 
       // Save result information on the AWS Database
-      const id = saveToAWS(tMoeData.result[0]);
-      linkList.push(embedBaseURL + id);
+      let id = await saveToAWS(tMoeData.result[0]);
+
+      let linkAppendIfNSFW = "";
+      if (message.channel.nsfw) {
+        linkAppendIfNSFW = "&nsfw=1";
+      }
+
+
+      linkList.push(embedBaseURL + id + linkAppendIfNSFW);
 
       const pageButtons = new MessageActionRow()
                               .addComponents(
                                 new MessageButton()
                                   .setCustomId('previous')
-                                  .setLabel('PREVIOUS')
+                                  .setLabel('⮪')
                                   .setStyle('PRIMARY'))
                               .addComponents(
                                 new MessageButton()
                                   .setCustomId('next')
-                                  .setLabel('NEXT')
+                                  .setLabel('➥')
                                   .setStyle('PRIMARY'));
       
       let traceMoeMSG = await message.channel.send({
@@ -76,10 +83,10 @@ module.exports = class traceMOE extends Command {
         components: [pageButtons],
       });
 
-      tMoeData.result.slice(1).forEach(tMoeElement => {
-        const id = saveToAWS(tMoeElement);
-        linkList.push(embedBaseURL + id);
-      });
+      for (const tMoeElement of tMoeData.result.slice(1)) {
+        id = await saveToAWS(tMoeElement);
+        linkList.push(embedBaseURL + id + linkAppendIfNSFW);
+      }
 
       const collector = await traceMoeMSG.createMessageComponentCollector({ componentType: 'BUTTON', time: 300000 });
 
@@ -90,7 +97,7 @@ module.exports = class traceMOE extends Command {
         switch (i.customId) {
           case 'previous':
             if (currentResultPage <= 0) {
-              currentResultPage = linkList.length-1;
+              currentResultPage = linkList.length - 1;
             } else {
               currentResultPage -= 1;
             }
@@ -124,8 +131,8 @@ module.exports = class traceMOE extends Command {
       return message.reply(`There was a problem with your request.\n\`\`\`${e.message}\`\`\``);
     }
 
-    function saveToAWS(tMoeElement) {
-      let id, name, idAnilist, adult, episode, similarity, video, image, timestamp, color;
+    async function saveToAWS(tMoeElement) {
+      let id, name, idAnilist, adult, episode, similarity, video, image, censoredImage, timestamp, color;
       if ("anilist" in tMoeElement && isNaN(tMoeElement.anilist)) {
         if ("english" in tMoeElement.anilist.title && tMoeElement.anilist.title.english) {
           id = name = tMoeElement.anilist.title.english;
@@ -194,12 +201,18 @@ module.exports = class traceMOE extends Command {
       }
 
       if (tMoeElement.image) {
-        image = tMoeElement.video;
+        image = tMoeElement.image;
       }
 
       if (tMoeElement.from) {
         timestamp = tMoeElement.from;
         id += '(' + timestamp + ')';
+      }
+
+      if (adult) {
+        // Create an image censored image preview
+        censoredImage = await searchTools.getBlurredNSFWLink(image);
+        console.log(censoredImage);
       }
 
       // Change all spaces and makes it URL friendly
@@ -221,6 +234,7 @@ module.exports = class traceMOE extends Command {
           "similarity": similarity,
           "video": video,
           "image": image,
+          "censoredImage": censoredImage,
           "timestamp": timestamp,
           "color": color,
           "width": 320,
@@ -228,7 +242,7 @@ module.exports = class traceMOE extends Command {
         },
       };
 
-      docClient.put(params, function(err, data) {
+      docClient.put(params, function(err) {
         if (err) {
           console.log("Unable to add item. Error JSON:", JSON.stringify(err, null, 2));
         } else {

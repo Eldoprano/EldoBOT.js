@@ -89,6 +89,7 @@ module.exports = class sauceNAO extends Command {
       let currentButtons = [pageButtons];
       let results = await sauceNAO_client(urlToSearch);
 
+      // Show first result page to user, together with buttons
       currentPage = await message.reply({
         embeds: [searchTools.makeEmbed(results[currentResultPage], "Loading!!", searchTools.getUsername(message))],
         components: currentButtons,
@@ -98,7 +99,6 @@ module.exports = class sauceNAO extends Command {
       // Upload to Discord asynchronically and update results when finished
       searchTools.sauceToDiscord(results).then(out => { 
         results = out;
-        console.log("Finished uploading" + currentResultPage);
         currentPage.edit({ embeds: [searchTools.makeEmbed(results[currentResultPage], currentResultPage, searchTools.getUsername(message))], components: currentButtons }).then(discordMsg => {
           currentPage = discordMsg;
         });
