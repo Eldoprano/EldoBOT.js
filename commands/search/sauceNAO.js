@@ -83,6 +83,8 @@ module.exports = class sauceNAO extends Command {
                              .setStyle('PRIMARY'));
                                 
       const linksButtons = [linksButtons_1, linksButtons_2];
+
+      const isChannelNSFW = message.channel.nsfw;
                               
       let currentResultPage = 0;
       let currentPage;
@@ -91,7 +93,7 @@ module.exports = class sauceNAO extends Command {
 
       // Show first result page to user, together with buttons
       currentPage = await message.reply({
-        embeds: [searchTools.makeEmbed(results[currentResultPage], "Loading!!", searchTools.getUsername(message))],
+        embeds: [searchTools.makeEmbed(results[currentResultPage], "Loading!!", searchTools.getUsername(message), isChannelNSFW)],
         components: currentButtons,
         fetchReply: true,
       });
@@ -99,7 +101,7 @@ module.exports = class sauceNAO extends Command {
       // Upload to Discord asynchronically and update results when finished
       searchTools.sauceToDiscord(results).then(out => { 
         results = out;
-        currentPage.edit({ embeds: [searchTools.makeEmbed(results[currentResultPage], currentResultPage, searchTools.getUsername(message))], components: currentButtons }).then(discordMsg => {
+        currentPage.edit({ embeds: [searchTools.makeEmbed(results[currentResultPage], currentResultPage, searchTools.getUsername(message), isChannelNSFW)], components: currentButtons }).then(discordMsg => {
           currentPage = discordMsg;
         });
       });
@@ -133,7 +135,7 @@ module.exports = class sauceNAO extends Command {
         }
         i.deferUpdate();
         // Save it's image to discord
-        currentPage = await currentPage.edit({ embeds: [searchTools.makeEmbed(results[currentResultPage], currentResultPage, searchTools.getUsername(message))], components: currentButtons });
+        currentPage = await currentPage.edit({ embeds: [searchTools.makeEmbed(results[currentResultPage], currentResultPage, searchTools.getUsername(message), isChannelNSFW)], components: currentButtons });
       });
 
     } catch (e) {

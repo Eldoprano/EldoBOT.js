@@ -54,38 +54,41 @@ async function saveToDiscord(file_list) {
     return link_list;
 }
 
-async function getBlurredNSFWLink(image) {
-    let imageResponse = await axios({ url: "https://cdn.discordapp.com/attachments/708648213774598164/909453999034499092/nsfw.png", responseType: 'arraybuffer' });
-    const nsfwWatermark_buf = Buffer.from(imageResponse.data, 'binary');
-    let output;
-
-    imageResponse = await axios({url: image, responseType: 'arraybuffer'});
-    const buffer = Buffer.from(imageResponse.data, 'binary');
+// Get's the buffer of an image as input, and gives you back a blurred image with NSFW! text
+async function censorBuffer(buffer) {
     let imageData;
     try {
         imageData = sharp(buffer);
         const imageMetadata = await imageData.metadata();
 
-        const nsfwWatermark = await sharp(nsfwWatermark_buf)
-            .resize({ width: imageMetadata.width * 0.65, height: imageMetadata.height * 0.65, fit: sharp.fit.contain, background: { r: 0, g: 0, b: 0, alpha: 0 } })
+        const nsfwWatermark = await sharp("base/img/nsfw_watermark.png")
+            .resize({ width: Math.round(imageMetadata.width * 0.65), height: Math.round(imageMetadata.height * 0.65), fit: sharp.fit.contain, background: { r: 0, g: 0, b: 0, alpha: 0 } })
             .toBuffer();
         
         imageData = await imageData
             .blur(8)
             .composite([{ input: nsfwWatermark, gravity: 'center' }])
             .toBuffer();
-
-        const fileToSend = new MessageAttachment().setFile(imageData, 'BlurredForTheGreaterGood.jpg');
-        const discordMsg = await globals.logChannel.send({ content: "A blurred NSFW Pic OwO", files: [fileToSend] });  
-
-        discordMsg.attachments.forEach(attachment => {
-            output = attachment.url;
-        });
-
-
-    } catch(e) {
-        console.log(e);
+    } catch (err) {
+        console.log(err);
     }
+    return imageData;
+}
+
+// Becomes an image url as input and outputs a url with that image blurred and with NSFW! as text
+async function getBlurredNSFWLink(image) {
+    let output;
+    const imageResponse = await axios({ url: image, responseType: 'arraybuffer' });
+    const buffer = Buffer.from(imageResponse.data, 'binary');
+    const imageData = await censorBuffer(buffer);
+
+    const fileToSend = new MessageAttachment().setFile(imageData, 'BlurredForTheGreaterGood.jpg');
+    const discordMsg = await globals.logChannel.send({ content: "A blurred NSFW Pic OwO", files: [fileToSend] });  
+
+    discordMsg.attachments.forEach(attachment => {
+        output = attachment.url;
+    });
+
     return output;
 }
 
@@ -134,7 +137,7 @@ module.exports = {
         return message.member.displayName;
     },
 
-    makeEmbed: function(sauceNAO_element, pageNumber, emb_user) {
+    makeEmbed: function(sauceNAO_element, pageNumber, emb_user, nsfw) {
         const result_data = sauceNAO_element.raw.data;
         const emb_similarity = sauceNAO_element.similarity;
         let emb_preview, emb_index_saucenao, emb_link, emb_artist, emb_name,

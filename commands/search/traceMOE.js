@@ -212,7 +212,7 @@ module.exports = class traceMOE extends Command {
       if (adult) {
         // Create an image censored image preview
         censoredImage = await searchTools.getBlurredNSFWLink(image);
-        console.log(censoredImage);
+        //console.log(censoredImage);
       }
 
       // Change all spaces and makes it URL friendly
