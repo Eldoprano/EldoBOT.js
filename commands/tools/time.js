@@ -193,7 +193,7 @@ module.exports = class Time extends Command {
           { name: '<t:' + timestamp + ':T>', value: '`<t:' + timestamp + ':T>`', inline: true },
           { name: '<t:' + timestamp + ':d>', value: '`<t:' + timestamp + ':d>`', inline: true },
           { name: '<t:' + timestamp + ':D>', value: '`<t:' + timestamp + ':D>`', inline: true },
-          { name: '<t:' + timestamp + ':f*>', value: '`<t:' + timestamp + ':f*>`', inline: true },
+          { name: '<t:' + timestamp + ':f>', value: '`<t:' + timestamp + ':f>`', inline: true },
           { name: '<t:' + timestamp + ':F>', value: '`<t:' + timestamp + ':F>`', inline: true },
           { name: '<t:' + timestamp + ':R>', value: '`<t:' + timestamp + ':R>`', inline: true },
         );
