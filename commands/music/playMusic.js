@@ -4,7 +4,7 @@ const config = require('../../config.js');
 const { Player, RepeatMode } = require("discord-music-player");
 let player;
 
-module.exports = class traceMOE extends Command {
+module.exports = class music extends Command {
     constructor(client) {
         super(client, {
             name: 'play',

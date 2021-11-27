@@ -79,8 +79,8 @@ Este comando requiere un nivel de ${this.client.levelCache[cmd.conf.permLevel]} 
       await cmd.run(message, args, level);
       this.client.logger.log(`${this.client.config.permLevels.find(l => l.level === level).name} ${message.author.id} ran command ${cmd.help.name}`, "cmd");
     } catch (e) {
-      message.channel.send({ content: `Tuvimos un problema con tu mensaje.\n\`\`\`${e.message}\`\`\`` })
-        .catch(e => console.error("An error occurred replying on an error", e));
+      message.channel.send({ content: `Tuvimos un problema con tu mensaje.\n\`\`\`${e.message}\`\`\``, files: ['https://i.kym-cdn.com/photos/images/newsfeed/000/708/396/3d6.gif'] })
+        .catch(ee => console.error("An error occurred replying on an error", ee));
     }
   }
 };

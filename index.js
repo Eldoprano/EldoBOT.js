@@ -34,6 +34,10 @@ class GuideBot extends Client {
     // and makes things extremely easy for this purpose.
     this.settings = new Enmap({ name: "settings" });
 
+    // Add the Enmap used to save user configurations like Anon-profiles
+    this.users_conf = new Enmap({ name: "users" });
+
+
     //requiring the Logger class for easy console logging
     this.logger = require("./util/logger.js");
 
@@ -126,6 +130,7 @@ class GuideBot extends Client {
       .replace(/@/g, "@" + String.fromCharCode(8203));
 
     text = this.replaceAll(text, config.token, "[REDACTED]");
+    text = this.replaceAll(text, config.accessSecretKey, "[REDACTED]");
 
     return text;
   }

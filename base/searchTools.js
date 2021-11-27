@@ -137,7 +137,7 @@ module.exports = {
         return message.member.displayName;
     },
 
-    makeEmbed: function(sauceNAO_element, pageNumber, emb_user, nsfw) {
+    makeEmbed: function(sauceNAO_element, pageNumber, emb_user) {
         const result_data = sauceNAO_element.raw.data;
         const emb_similarity = sauceNAO_element.similarity;
         let emb_preview, emb_index_saucenao, emb_link, emb_artist, emb_name,

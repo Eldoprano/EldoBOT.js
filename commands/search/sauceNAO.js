@@ -12,7 +12,7 @@ const sauceNAO_client = sagiri(sauceNAO_token);
 module.exports = class sauceNAO extends Command {
   constructor(client) {
     super(client, {
-      name: 'aiurbaka',
+      name: 'name',
       description: 'Searches the origin of an image',
       category: 'search',
       options: [],
@@ -43,11 +43,11 @@ module.exports = class sauceNAO extends Command {
       const pageButtons = new MessageActionRow()
         .addComponents(
           new MessageButton().setCustomId('previous')
-                             .setLabel('PREVIOUS')
+                             .setLabel('◀')
                              .setStyle('PRIMARY'))
                              .addComponents(
           new MessageButton().setCustomId('next')
-                             .setLabel('NEXT')
+                             .setLabel('▶')
                              .setStyle('PRIMARY'))
                              .addComponents(
           new MessageButton().setCustomId('links')
@@ -84,7 +84,8 @@ module.exports = class sauceNAO extends Command {
                                 
       const linksButtons = [linksButtons_1, linksButtons_2];
 
-      const isChannelNSFW = message.channel.nsfw;
+      // Not used at the moment. Waiting for Sagiri to update the wrapper that filters NSFW out
+      //const isChannelNSFW = message.channel.nsfw;
                               
       let currentResultPage = 0;
       let currentPage;
@@ -93,7 +94,7 @@ module.exports = class sauceNAO extends Command {
 
       // Show first result page to user, together with buttons
       currentPage = await message.reply({
-        embeds: [searchTools.makeEmbed(results[currentResultPage], "Loading!!", searchTools.getUsername(message), isChannelNSFW)],
+        embeds: [searchTools.makeEmbed(results[currentResultPage], "Loading!!", searchTools.getUsername(message))],
         components: currentButtons,
         fetchReply: true,
       });
@@ -101,7 +102,7 @@ module.exports = class sauceNAO extends Command {
       // Upload to Discord asynchronically and update results when finished
       searchTools.sauceToDiscord(results).then(out => { 
         results = out;
-        currentPage.edit({ embeds: [searchTools.makeEmbed(results[currentResultPage], currentResultPage, searchTools.getUsername(message), isChannelNSFW)], components: currentButtons }).then(discordMsg => {
+        currentPage.edit({ embeds: [searchTools.makeEmbed(results[currentResultPage], currentResultPage, searchTools.getUsername(message))], components: currentButtons }).then(discordMsg => {
           currentPage = discordMsg;
         });
       });
@@ -124,6 +125,9 @@ module.exports = class sauceNAO extends Command {
               currentResultPage += 1;
             }
             break;
+          case 'video':
+            // TODO
+            break;
           case 'links':
             currentButtons = linksButtons;
             break;
@@ -135,7 +139,7 @@ module.exports = class sauceNAO extends Command {
         }
         i.deferUpdate();
         // Save it's image to discord
-        currentPage = await currentPage.edit({ embeds: [searchTools.makeEmbed(results[currentResultPage], currentResultPage, searchTools.getUsername(message), isChannelNSFW)], components: currentButtons });
+        currentPage = await currentPage.edit({ embeds: [searchTools.makeEmbed(results[currentResultPage], currentResultPage, searchTools.getUsername(message))], components: currentButtons });
       });
 
     } catch (e) {

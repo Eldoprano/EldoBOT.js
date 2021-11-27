@@ -21,7 +21,7 @@ AWS.config.update({
 module.exports = class traceMOE extends Command {
   constructor(client) {
     super(client, {
-      name: 'aiuraho',
+      name: 'frame',
       description: 'Searches a frame from an anime',
       category: 'search',
       options: [],
