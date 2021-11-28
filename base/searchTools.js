@@ -7,6 +7,11 @@ const sharp = require('sharp');
 const axios = require('axios');
 const globals = require('./Globals');
 
+// Regex that extracts the "Danbooru" in "Index #9:Danbooru"
+const getIndexName = /^[I,i]ndex #\d*:[ ]*(.*)/;
+const getURLDomain = /^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)/
+
+
 async function down_to_up(url) {
     const response = await fetch(url);
     return await response.buffer();
@@ -137,12 +142,13 @@ module.exports = {
         return message.member.displayName;
     },
 
-    makeEmbed: function(sauceNAO_element, pageNumber, emb_user) {
+    makeEmbed: function(sauceNAO_element, pageNumber, searched_image, author_name, author_image) {
         const result_data = sauceNAO_element.raw.data;
         const emb_similarity = sauceNAO_element.similarity;
+        const fieldDataList = [];
         let emb_preview, emb_index_saucenao, emb_link, emb_artist, emb_name,
             emb_episode, statusCode, emb_character, emb_company, emb_game,
-            emb_description, emb_color, emb_embbed_tittle, emb_footer;
+            emb_color, emb_embbed_tittle, emb_footer;
 
         if ('in_discord' in result_data) {
             emb_preview = sauceNAO_element.raw.discord_image;
@@ -304,43 +310,84 @@ module.exports = {
             emb_embbed_tittle = 'Nombre quizás encontrado!';
         } else {
             emb_color = 15597568; // A worrying red
-            emb_embbed_tittle = 'Nombre probablemente encontrado!';
+            emb_embbed_tittle = 'Nombre probablemente no encontrado (┬┬﹏┬┬)';
         }
 
         // eslint-disable-next-line prefer-const
-        emb_footer = 'Porcentaje de seguridad: ' + emb_similarity + '% | Pedido por: ' + emb_user + ' | Page ' + (pageNumber + 1);
+        emb_footer = 'Porcentaje de seguridad: ' + emb_similarity + '% | Page ' + (pageNumber + 1);
 
         // We should already have all the data at this point, so we create the message
         if (emb_name || emb_artist || emb_link) {
-            emb_description = '';
+            //emb_description = '';
             if (emb_name) {
-                emb_description += '**Nombre: ** ' + emb_name + '\n';
+                // emb_description += '**Nombre: ** ' + emb_name + '\n';
+                fieldDataList.push({ 
+                    name: "Nombre:",
+                    value: emb_name,
+                    inline: false,
+                });
             }
             if (emb_episode) {
-                emb_description += '**Episodio: ** ' + emb_episode + '\n';
+                // emb_description += '**Episodio: ** ' + emb_episode + '\n';
+                fieldDataList.push({ 
+                    name: "Episodio:",
+                    value: emb_episode,
+                    inline: true,
+                });
             }
             if (emb_character) {
-                emb_description += '**Personaje: ** ' + emb_character + '\n';
+                // emb_description += '**Personaje: ** ' + emb_character + '\n';
+                fieldDataList.push({ 
+                    name: "Personaje:",
+                    value: emb_character,
+                    inline: false,
+                });
             }
             if (emb_artist) {
-                emb_description += '**Artista: ** ' + emb_artist + '\n';
+                // emb_description += '**Artista: ** ' + emb_artist + '\n';
+                fieldDataList.push({ 
+                    name: "Artista:",
+                    value: emb_artist,
+                    inline: true,
+                });
             }
             if (emb_company) {
-                emb_description += '**Compañía: ** ' + emb_company + '\n';
+                // emb_description += '**Compañía: ** ' + emb_company + '\n';
+                fieldDataList.push({ 
+                    name: "Compañía:",
+                    value: emb_company,
+                    inline: true,
+                });
             }
             if (emb_game) {
-                emb_description += '**Juego: ** ' + emb_game + '\n';
+                // emb_description += '**Juego: ** ' + emb_game + '\n';
+                fieldDataList.push({ 
+                    name: "Juego:",
+                    value: emb_game,
+                    inline: true,
+                });
             }
             if (emb_link) {
-                emb_description += '**Link: ** ' + emb_link + '\n';
+                // emb_description += '**Link: ** ' + emb_link + '\n';
+                // Extract the Website's name from the Index name
+                let indexNameExtracted = getIndexName.exec(emb_index_saucenao);
+                //  and if it wasnt found, show the Index name
+                indexNameExtracted = (indexNameExtracted) ? indexNameExtracted[1] : emb_index_saucenao;
+
+                fieldDataList.push({ 
+                    name: "Link:",
+                    value: "[" + indexNameExtracted + "](" + emb_link + ")",
+                    inline: true,
+                });
             }
 
-            emb_description += '**Encontrado en: **' + emb_index_saucenao + '\n';
-
             const embedWithResults = new MessageEmbed()
-                .setDescription(emb_description)
                 .setTitle(emb_embbed_tittle)
+                .setAuthor(author_name, author_image)
+                .setFields(fieldDataList)
+                //.setDescription(emb_description)
                 .setColor(emb_color)
+                .setThumbnail(searched_image)
                 .setFooter(emb_footer);
             if (emb_preview) {
                 embedWithResults.setImage(emb_preview);
@@ -349,23 +396,54 @@ module.exports = {
         } else {
 
             // In case we couldn't gather enough information from the RAW data, use the API data
-            emb_description = '';
+            //emb_description = '';
             if (sauceNAO_element.authorName) {
-                emb_description += '**Artista: ** ' + sauceNAO_element.authorName + '\n';
-            }
-            if (sauceNAO_element.url && getUrlStatusCode(sauceNAO_element.url) != 404) {
-                emb_description += '**Link: ** ' + sauceNAO_element.url + '\n';
-            }
-            if (sauceNAO_element.site) {
-                emb_description += '**Página: ** ' + sauceNAO_element.site + '\n';
+                // emb_description += '**Artista: ** ' + sauceNAO_element.authorName + '\n';
+                fieldDataList.push({ 
+                    name: "Artista:",
+                    value: sauceNAO_element.authorName,
+                    inline: true,
+                });
             }
             if (sauceNAO_element.authorUrl && getUrlStatusCode(sauceNAO_element.authorUrl) != 404) {
-                emb_description += '**Link del artista: ** ' + sauceNAO_element.authorUrl + '\n';
+                // emb_description += '**Link del artista: ** ' + sauceNAO_element.authorUrl + '\n';
+
+                // Extract the Website's name from the URL
+                let domainNameExtracted = getURLDomain.exec(sauceNAO_element.authorUrl);
+                domainNameExtracted = (domainNameExtracted) ? domainNameExtracted[1] : sauceNAO_element.authorUrl;
+                fieldDataList.push({ 
+                    name: "Link del artista:",
+                    value: "[" + domainNameExtracted + "](" + sauceNAO_element.authorUrl + ")",
+                    inline: true,
+                });
+            }
+            if (sauceNAO_element.site) {
+                // emb_description += '**Página: ** ' + sauceNAO_element.site + '\n';
+                fieldDataList.push({ 
+                    name: "Página:",
+                    value: sauceNAO_element.site,
+                    inline: true,
+                });
+            }
+            if (sauceNAO_element.url && getUrlStatusCode(sauceNAO_element.url) != 404) {
+                // emb_description += '**Link: ** ' + sauceNAO_element.url + '\n';
+
+                // Extract the Website's name from the URL
+                let domainNameExtracted = getURLDomain.exec(sauceNAO_element.url);
+                domainNameExtracted = (domainNameExtracted) ? domainNameExtracted[1] : sauceNAO_element.url;
+                fieldDataList.push({ 
+                    name: "Link de la imágen:",
+                    value: "[" + domainNameExtracted + "](" + sauceNAO_element.url + ")",
+                    inline: true,
+                });
             }
             const embedWithResults = new MessageEmbed()
-                .setDescription(emb_description)
                 .setTitle(emb_embbed_tittle)
+                .setAuthor(author_name, author_image)
+                //.setDescription(emb_description)
+                .setFields(fieldDataList)
                 .setColor(emb_color)
+                .setThumbnail(searched_image)
                 .setFooter(emb_footer);
             if (emb_preview) {
                 embedWithResults.setImage(emb_preview);

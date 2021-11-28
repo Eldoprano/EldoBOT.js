@@ -52,7 +52,11 @@ module.exports = class sauceNAO extends Command {
                              .addComponents(
           new MessageButton().setCustomId('links')
                              .setLabel('LINKS DE BÚSQUEDA')
-                             .setStyle('SECONDARY'));
+                             .setStyle('SECONDARY'))
+                             .addComponents(
+          new MessageButton().setCustomId('delete')
+                             .setLabel('🗑️')
+                             .setStyle('DANGER'));
      
       const linksButtons_1 = new MessageActionRow()
         .addComponents(
@@ -94,7 +98,7 @@ module.exports = class sauceNAO extends Command {
 
       // Show first result page to user, together with buttons
       currentPage = await message.reply({
-        embeds: [searchTools.makeEmbed(results[currentResultPage], "Loading!!", searchTools.getUsername(message))],
+        embeds: [searchTools.makeEmbed(results[currentResultPage], "Loading!!", urlToSearch, searchTools.getUsername(message), message.author.avatarURL())],
         components: currentButtons,
         fetchReply: true,
       });
@@ -102,12 +106,13 @@ module.exports = class sauceNAO extends Command {
       // Upload to Discord asynchronically and update results when finished
       searchTools.sauceToDiscord(results).then(out => { 
         results = out;
-        currentPage.edit({ embeds: [searchTools.makeEmbed(results[currentResultPage], currentResultPage, searchTools.getUsername(message))], components: currentButtons }).then(discordMsg => {
+        if (!currentPage) { return; } // Ignore if message was already deleted
+        currentPage.edit({ embeds: [searchTools.makeEmbed(results[currentResultPage], currentResultPage, urlToSearch, searchTools.getUsername(message), message.author.avatarURL())], components: currentButtons }).then(discordMsg => {
           currentPage = discordMsg;
         });
       });
       
-      const collector = await currentPage.createMessageComponentCollector({ componentType: 'BUTTON', time: 300000 });
+      const collector = await currentPage.createMessageComponentCollector({ componentType: 'BUTTON', time: 1800_000 }); // 30 minutes  1800_000
       
       collector.on('collect', async (i) => {
         switch (i.customId) {
@@ -128,6 +133,10 @@ module.exports = class sauceNAO extends Command {
           case 'video':
             // TODO
             break;
+          case 'delete':
+            await currentPage.delete();
+            currentPage = undefined;
+            break;
           case 'links':
             currentButtons = linksButtons;
             break;
@@ -137,9 +146,31 @@ module.exports = class sauceNAO extends Command {
           default:
             break;
         }
+        if (!currentPage) { return; } // Ignore if message was deleted
         i.deferUpdate();
         // Save it's image to discord
-        currentPage = await currentPage.edit({ embeds: [searchTools.makeEmbed(results[currentResultPage], currentResultPage, searchTools.getUsername(message))], components: currentButtons });
+        currentPage = await currentPage.edit({ embeds: [searchTools.makeEmbed(
+              results[currentResultPage],         // SauceNAO result list
+              currentResultPage,                  // Page number
+              urlToSearch,                        // Url of image that the user is searching
+              searchTools.getUsername(message),   // User name
+              message.author.avatarURL(),         // User pfp
+          )], components: currentButtons });      // Buttons to add to the message
+      });
+
+      // Deactivate buttons if we are not reading them anymore
+      collector.on('end', async () => {
+        if (!currentPage) {return; }
+        currentPage.edit({ embeds: [searchTools.makeEmbed(results[currentResultPage], currentResultPage, urlToSearch, searchTools.getUsername(message), message.author.avatarURL())], components: deactivateButtons([pageButtons]) });
+
+        function deactivateButtons(buttons) {
+          buttons.forEach(buttonRow => {
+            buttonRow.components.forEach(button => {
+              button.setDisabled();
+            });
+          });
+          return buttons;
+        }
       });
 
     } catch (e) {
