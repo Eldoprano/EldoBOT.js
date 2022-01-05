@@ -161,18 +161,27 @@ module.exports = {
 
             
             // Test if URL is still working
-            statusCode = getUrlStatusCode(result_data.ext_urls[0]);
-            if (statusCode != 404) {
+            // Pass result_data.ext_urls[0] or sauceNAO_element to getUrlStatusCode. Skip if both are undefined
+            if ("ext_urls" in result_data) {
+                // statusCode = getUrlStatusCode(result_data.ext_urls[0]);
                 emb_link = result_data.ext_urls[0];
+            } else if ("url" in sauceNAO_element) {
+                // statusCode = getUrlStatusCode(sauceNAO_element.url);
+                emb_link = sauceNAO_element.url;
             }
+
+            // TODO: Status codes aren't working at the moment, and are spitting undefineds :/
+            // if (statusCode >= 200 && statusCode < 300) {
+            //     emb_link = result_data.ext_urls[0];
+            // }
             // Check Pixiv
             if ('pixiv_id' in result_data) {
-                emb_artist = result_data.member_name;
+                emb_artist = result_data.member_name || "";
             }
             // Check Nijie
             else if ('nijie_id' in result_data) {
                 emb_name = result_data.title;
-                emb_artist = result_data.member_name;
+                emb_artist = result_data.member_name || "";
             }
 
             // Check for other sources
@@ -181,12 +190,12 @@ module.exports = {
                     emb_name = result_data.source;
                     emb_episode = result_data.part;
                 } else if (result_data.source.search('twitter.com') != -1) {
-                    emb_artist = result_data.creator;
+                    emb_artist = result_data.creator || "";
                 }
                 if ('material' in result_data) {
                     emb_name = result_data.material;
                 }
-                if ("source" in result_data) {
+                if ("source" in result_data && !emb_link) {
                     emb_link = result_data.source;
                 }
                 // else {
@@ -221,7 +230,7 @@ module.exports = {
                     }
                 }
                 if (result_data.creator) {
-                    emb_artist = result_data.creator;
+                    emb_artist = result_data.creator || "";
                 }
             }
 
@@ -246,11 +255,13 @@ module.exports = {
                 try {
                     if (result_data.creator instanceof Array) {
                         for (const artist of result_data.creator) {
-                            emb_artist += artist + ', ';
+                            if (artist) {
+                                emb_artist += artist + ', ';
+                            }
                         }
                         emb_artist = emb_artist.slice(0, -2);
                     } else {
-                        emb_artist = result_data['creator'];
+                        emb_artist = result_data['creator'] || "";
                     }
                 } catch (e) {
                     // Ignore error
@@ -374,9 +385,19 @@ module.exports = {
                 //  and if it wasnt found, show the Index name
                 indexNameExtracted = (indexNameExtracted) ? indexNameExtracted[1] : emb_index_saucenao;
 
+                // If emb_link is a URL, we can extract the domain name and save it in emb_domain
+                // eslint-disable-next-line no-useless-escape
+                const regex = /(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n]+)/gim;
+                let emb_domain = regex.exec(emb_link);
+                if (emb_domain) {
+                    emb_domain = emb_domain[1];
+                } else {
+                    emb_domain = indexNameExtracted;
+                }
+
                 fieldDataList.push({ 
                     name: "Link:",
-                    value: "[" + indexNameExtracted + "](" + emb_link + ")",
+                    value: "[" + emb_domain + "](" + emb_link + ")",
                     inline: true,
                 });
             }

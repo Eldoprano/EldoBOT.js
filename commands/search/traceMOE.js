@@ -49,8 +49,22 @@ module.exports = class traceMOE extends Command {
       await message.channel.sendTyping();
 
       // Send it to TraceMOE API and save result
-      const tMoeResponse = await fetch(traceMOEBaseURL + `${encodeURIComponent(urlToSearch)}`);
+      let tMoeResponse = await fetch(traceMOEBaseURL + `${encodeURIComponent(urlToSearch)}`);
       // if (tMoeResponse==404) // Handle this in a future
+      // If the response isn't valid, try sending it 3 more times in an interval of 2.4 seconds
+      if (!tMoeResponse.ok) {
+        for (let i = 0; i < 3; i++) {
+          await new Promise(r => setTimeout(r, 2400));
+          tMoeResponse = await fetch(traceMOEBaseURL + `${encodeURIComponent(urlToSearch)}`);
+          if (tMoeResponse.ok) break;
+        }
+      }
+      if (!tMoeResponse.ok) {
+        // If it still doesn't work, return an error
+        await message.channel.send(`Tristemente los servidores de TraceMOE están saturados por el momento.\nInténtalo más tarde.`);
+        return ;
+      }
+
       const tMoeData = await tMoeResponse.json();
 
       const linkList = [];
@@ -112,7 +126,7 @@ module.exports = class traceMOE extends Command {
         }
         i.deferUpdate();
         traceMoeMSG = await traceMoeMSG.edit(linkList[currentResultPage]);
-      });
+      });    
 
       collector.on('end', async () => {
         traceMoeMSG.edit({ content: linkList[currentResultPage], components: deactivateButtons([pageButtons]) });
