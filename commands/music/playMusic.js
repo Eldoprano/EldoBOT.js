@@ -12,6 +12,7 @@ module.exports = class music extends Command {
             category: 'music',
             options: [],
             guildOnly: false, // Set this to false if you want it to be global.
+            permLevel: "Bot Owner",
         });
 
         // Configure Music bot

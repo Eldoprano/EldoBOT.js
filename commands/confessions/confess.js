@@ -1,7 +1,6 @@
 const Command = require("../../base/Command");
 const globals = require('../../base/Globals');
 
-
 module.exports = class Confess extends Command {
     constructor(client) {
         super(client, {
@@ -38,7 +37,6 @@ module.exports = class Confess extends Command {
         if (!userConf.anon.name) {
             userConf.anon.name = "Usuario anónimo #" + ((10267 * author_id + currentTime) % 10000 ); // A lazy hash :P
         }
-
 
         const anonWebhook = await msgchannel.createWebhook(userConf.anon.name, {
             avatar: userConf.anon.image,

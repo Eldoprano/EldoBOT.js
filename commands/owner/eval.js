@@ -17,7 +17,7 @@ module.exports = class Eval extends Command {
       category:"Owner",
       usage: "eval <expression>",
       aliases: ["ev"],
-      permLevel: "Bot Owner"
+      permLevel: "Bot Owner",
     });
   }
 
