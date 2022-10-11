@@ -5,6 +5,7 @@ module.exports = class Confess extends Command {
     constructor(client) {
         super(client, {
             name: "confess",
+            aliases: ["anon"],
             description: "Te permite confesar algo anónimamente 😳",
             category: "Confess",
             options: [],

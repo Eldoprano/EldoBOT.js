@@ -3,6 +3,7 @@ const searchTools = require('../../base/searchTools.js');
 const config = require('../../config.js');
 const { MessageActionRow, MessageButton } = require('discord.js');
 const anitomy = require('anitomy-js');
+const globals = require('../../base/Globals');
 
 
 // import fetch from 'node-fetch';
@@ -38,6 +39,9 @@ module.exports = class traceMOE extends Command {
         urlToSearch = message.attachments.first().url;
       } else {
         // Search for a link on the message if there wasn't an attachment
+
+
+        // TODO: Here we have to be sure that if there isn't any link we are not just passing a blank strig to urlToSearch
         urlToSearch = searchTools.extractURLs(message.content);
         if (urlToSearch) {
           urlToSearch = urlToSearch[0];
@@ -45,6 +49,8 @@ module.exports = class traceMOE extends Command {
           // If it doesn't contain an URL or attachment, ignore message
           return;
         }
+
+        
       }
       await message.channel.sendTyping();
 
@@ -208,7 +214,15 @@ module.exports = class traceMOE extends Command {
       }
 
       if (tMoeElement.video) {
-        video = tMoeElement.video;
+        // We first save the video to discord, and then send the Discod link to AWS
+        const result_msg = await globals.logChannel.send({ files: [tMoeElement.video] });
+        const attach = Array.from(result_msg.attachments.values());
+        if (attach.length > 0) {
+          video = attach[0].url;
+        } else {
+          // If we didn't got a video link from Discord, send the temp moe link
+          video = tMoeElement.video;
+        }
       } else {
         // What if there is no video? How can you show just a photo?
         video = null;

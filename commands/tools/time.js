@@ -165,14 +165,19 @@ module.exports = class Time extends Command {
 
         case 'delete':
           await timeMessage.delete();
-          break;
+          collector.stop();
+          return;
       }
       i.deferUpdate();
       collector.resetTimer();
     });
 
     collector.on('end', async () => {
-      timeMessage.edit({ embeds: [embedWithResults], components: deactivateButtons(currentButtons) });
+      try {
+        timeMessage.edit({ embeds: [embedWithResults], components: deactivateButtons(currentButtons) });
+      } catch (e) {
+        // Probably the message got deleted
+      }
       function deactivateButtons(buttons) {
         buttons.forEach(buttonRow => {
           buttonRow.components.forEach(button => {

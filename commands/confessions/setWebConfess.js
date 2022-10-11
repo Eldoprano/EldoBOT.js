@@ -103,7 +103,7 @@ function generateConfessIDWebhook(tempID) {
 // Function that runs every 1 hour, reads the JSOn webhooks.json and edit's it's messages
 // This function is called by the bot.js file
 async function editWebhooks() {
-    console.log("[Webhooks] Actualizando webhooks ids");
+    //console.log("[Webhooks] Actualizando webhooks ids");
     // Open webhooks.json
     const webhooks = require('../../data/webhooks.json');
     // For each webhook in the JSON file

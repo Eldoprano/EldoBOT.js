@@ -144,3 +144,4 @@ dist
 # End of https://www.toptal.com/developers/gitignore/api/node,visualstudiocode
 data/enmap.sqlite*
 .vscode/launch.json
+data/webhooks.json

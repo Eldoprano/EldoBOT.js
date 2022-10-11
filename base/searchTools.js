@@ -11,14 +11,16 @@ const globals = require('./Globals');
 const getIndexName = /^[I,i]ndex #\d*:[ ]*(.*)/;
 const getURLDomain = /^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)/
 
-
+// Downloads a file and returns it as a buffer
 async function down_to_up(url) {
     const response = await fetch(url);
     return await response.buffer();
 }
 
+// Receives a list of external URLs pointing to images, uploads them to Discord
+// and returns a list of URLs for them 
 async function saveToDiscord(file_list) {
-    const getFileName = new RegExp(/([\w_-]+)+(?!.*(\w+)(\.\w+)+)/);
+    const getFileName = new RegExp(/[^/\\=&?]+\.(jpg|png|gif|jpeg)/);
     const link_list = [];
     while (file_list.length > 0) {
         const files_to_send = file_list.slice(0, 10);
@@ -41,6 +43,7 @@ async function saveToDiscord(file_list) {
                 if (tmp_result.byteLength / 1000000 > 8) {
                     // TODO: If file size is greater than 8mb, we should compress it
                     console.log("FILE TOO BIG!");
+                    continue;
                 }
 
                 tmp_result = new MessageAttachment().setFile(tmp_result, 'Discord_baka.jpg');
@@ -473,8 +476,15 @@ module.exports = {
         }
     },
     extractURLs: function(text) {
+        // Extracts the url's from text using regex
         const urlRegex = /(((https?:\/\/)|(www\.))[^\s]+)/g;
-        return text.match(urlRegex);
+        const match = text.match(urlRegex);
+        // From this match, just keep the url, ignoring the query string
+        if (match) {
+            return match.map(url => url.split('?')[0]);
+        } else {
+            return [];
+        }
     },
 };
 

@@ -23,6 +23,7 @@ module.exports = class sauceNAO extends Command {
   async run(message, [action, key, ...value], level) {
     try {
       let urlToSearch;
+      if (message.attachments.size == 0) {return;}
       if (message.attachments.first()) {
         urlToSearch = message.attachments.first().url;
       } else {
