@@ -1,0 +1,13 @@
+{
+    "example_guild_id": {
+        "name": "guild_name",
+        "stats": {
+            "example_timestamp": {
+                "example_id1": {
+                    "name": "emote1_name",
+                    "counter": "counter"
+                }
+            }
+        }
+    }
+}

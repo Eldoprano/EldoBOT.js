@@ -1,0 +1,18 @@
+{
+    "example_user_id": {
+        "name": "example_user_name",
+        "private": false,
+        "stats": {
+            "example_timestamp": {
+                "example_id": {
+                    "name": "example_emote1_name",
+                    "counter": "example_counter"
+                },
+                "example_id": {
+                    "name": "example_emote2_name",
+                    "counter": "example_counter"
+                }
+            }
+        }
+    }
+}

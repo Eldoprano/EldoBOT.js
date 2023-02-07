@@ -37,6 +37,10 @@ class GuideBot extends Client {
     // Add the Enmap used to save user configurations like Anon-profiles
     this.users_conf = new Enmap({ name: "users" });
 
+    // Add the Enmap used to save statistics about emoji usage. Access it via "this.client.[variable_name]"
+    this.emoji_stats_guild = new Enmap({ name: "emoji_guild", fetchAll: false });
+    this.emoji_stats_user = new Enmap({ name: "emoji_user", fetchAll: false });
+
 
     //requiring the Logger class for easy console logging
     this.logger = require("./util/logger.js");
@@ -120,10 +124,12 @@ class GuideBot extends Client {
   This is mostly only used by the Eval and Exec commands.
   */
   async clean(text) {
-    if (text && text.constructor.name == "Promise")
+    if (text && text.constructor.name == "Promise") {
       text = await text;
-    if (typeof text !== "string")
+    }
+    if (typeof text !== "string") {
       text = require("util").inspect(text, { depth: 1 });
+    }
 
     text = text
       .replace(/`/g, "`" + String.fromCharCode(8203))

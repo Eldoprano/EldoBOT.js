@@ -9,7 +9,7 @@ const globals = require('./Globals');
 
 // Regex that extracts the "Danbooru" in "Index #9:Danbooru"
 const getIndexName = /^[I,i]ndex #\d*:[ ]*(.*)/;
-const getURLDomain = /^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)/
+const getURLDomain = /^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)/;
 
 // Downloads a file and returns it as a buffer
 async function down_to_up(url) {
@@ -47,7 +47,7 @@ async function saveToDiscord(file_list) {
                 }
 
                 tmp_result = new MessageAttachment().setFile(tmp_result, 'Discord_baka.jpg');
-                tmp_result = await globals.logChannel.send({content: "Discord is a little whiny baby that can't detect an image file, so we need to explicitly give him this piece of Buffer", files: [tmp_result] });  
+                tmp_result = await globals.logChannel.send({ content: "Discord is a little whiny baby that can't detect an image file, so we need to explicitly give him this piece of Buffer", files: [tmp_result] });  
 
                 tmp_result.attachments.forEach(attachment => {
                     // do something with the attachment
@@ -150,7 +150,7 @@ module.exports = {
         const emb_similarity = sauceNAO_element.similarity;
         const fieldDataList = [];
         let emb_preview, emb_index_saucenao, emb_link, emb_artist, emb_name,
-            emb_episode, statusCode, emb_character, emb_company, emb_game,
+            emb_episode, emb_character, emb_company, emb_game,
             emb_color, emb_embbed_tittle, emb_footer;
 
         if ('in_discord' in result_data) {
